@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Creating a simple to-do application - Part 1</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+	<!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/css/materialize.min.css">
+
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.5/js/materialize.min.js"></script>
+	<script src="jquery.tabletojson.min.js"></script>
+<script src="//cdn.ckeditor.com/4.5.6/standard/ckeditor.js"></script>	
+<link href="custom.css" rel="stylesheet">
+<script>
+
+// ignore this first line (its fidle mock) and it will return what ever you pass as json:... parameter... consider to change it to your ajax call
+$.getJSON('entries.json', function(data) {
+ drawTable(data);
+
+});
+
+
+function drawTable(data) {
+    for (var i = 0; i < data.length; i++) {
+        drawRow(data[i]);
+    }
+	var table = $('#table').tableToJSON(); // Convert the table into a javascript object
+
+}
+
+function drawRow(rowData) {
+    var row = $("<tr />")
+    $("#table").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+    row.append($("<td>" + rowData.id + "</td>"));
+	row.append($("<td class='titleCol'>" + rowData.title + "</td>"));
+    row.append($("<td >" + rowData.description + "</td>"));
+    row.append($("<td >" + rowData.categories + "</td>"));
+	row.append($("<td >" + rowData.references + "</td>"));
+	row.append($("<td ><button class='editBtn waves-effect waves-green btn-flat '>Edit</button></td>"));
+	row.append($("<td ><button class='deleteBtn waves-effect waves-green btn-flat'>Delete</button></td>"));
+
+	 
+}
+
+function changeRow(row,rowData){
+row.eq(1).text(rowData.title);
+row.eq(2).text(rowData.description);
+row.eq(3).text(rowData.categories);
+row.eq(4).text(rowData.references);
+}
+</script>
+</head> 
+<body>
+
+
+  <!-- Modal Structure -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+     <p>Are you sure you want to delete this entry?</p>
+    </div>
+    <div class="modal-footer">
+      <button  class=" modal-action modal-close waves-effect waves-green btn-flat" id="deleteButton">Delete</button>
+	  <button  class=" modal-action modal-close waves-effect waves-green btn-flat" id="cancelButton">Cancel</button>
+    </div>
+  </div>
+  <div id="entryModal" class="modal">
+ 
+    <div class="modal-content">
+  <form id="entryForm" action="" method="post">
+<h1>Entry</h1>
+<p>
+<label><span>Id</span>
+	<input disabled size="100" type="text" name="entryId" id="entryId">
+	</label>
+	<label><span>Title</span>
+	<input size="100" type="text" name="title" id="title">
+	</label>
+	
+	<label><span>Description</span>
+	<textarea id="description" rows="15" cols="100" name="description"></textarea>
+	</label>
+	  
+	<label><span>Categories</span>
+	<textarea rows="5" cols="100" name="categories" id="categories"></textarea>
+	</label>
+	  
+	<label><span>References</span>
+<textarea rows="15" cols="100" name="references" id="references"></textarea>
+	</label>
+	<label><span>&nbsp;</span>
+		<input class=" modal-action modal-close waves-effect waves-green btn-flat" type="submit" value="Save" class="button">
+	</label>
+	</p>
+</form>
+    </div>
+    <div class="modal-footer">
+	  <button  class=" modal-action modal-close waves-effect waves-green btn-flat" id="cancelButton">Cancel</button>
+
+    
+    </div>
+	
+  </div>
+          
+
+<div class="container">
+<div class="row">
+<div  class="col s12 ">
+
+
+<button id="newEntry" data-target="entryModal" class="btn modal-trigger">New Entry</button>
+
+  
+   
+	    <table class="bordered responsive-table" id="table" >
+		 <thead>
+         
+    <tr>
+        <th>id</th>
+        <th>title</th>
+        <th>description</th>
+		<th>categories</th>
+		 <th>references</th>
+		 <th>edit</th>
+		 <th>delete</th>
+    </tr>
+   </thead> 
+</table>
+</div>
+</div>
+</div>
+<!-- [/page] -->
+   <script>
+   	var editor = CKEDITOR.replace('description');
+   // $('.modal-trigger').leanModal();
+   
+   $('#newEntry').on('click',function(){
+   $('#entryModal').openModal();
+
+   $('#entryId').val($('#table tr').length);
+   });
+   
+  $(document).on("click", ".editBtn", function() {
+   var row=$(this).closest("tr");
+   console.log("edit");
+    $('#entryId').val(row.children().eq(0).text());
+	$('#title').val(row.children().eq(1).text());
+	editor.setData(row.children().eq(2).text());
+	$('#categories').val(row.children().eq(3).text());
+	$("#references").val(row.children().eq(4).text());
+	 $('#entryModal').openModal();
+	});
+
+   
+  $(document).on("click", ".deleteBtn", function() {
+  var row=$(this).closest("tr").remove();
+
+   });
+   
+	$('#cancelButton').on('click',function(){
+$(this).closest(".modal").closeMOdal();
+	
+	 $('#entryForm').find("input[type=text], textarea").val("");
+	});
+          
+			
+				
+				
+                 $('#entryForm').on('submit', function(e) {
+				 $('#entryModal').closeModal();
+				var rowData={id:$('#entryId').val(),title:$('#title').val(),description:editor.getData(),categories:$('#categories').val(),references:$("#references").val()};
+				 console.log("in event");
+				 //if id exists in table change values
+				 if ($('#table').find("tr").eq($('#entryId').val()).find("td").eq(0).text()){
+				
+				 changeRow($('#table').find("tr").eq($('#entryId').val()).find("td"),rowData);
+				 
+				 }else{
+				 
+				 drawRow(rowData);
+				 }
+				 
+		//gia to delete na allazoun ola ta ids
+				 var serializedData="entryId="+$('#entryId').val()+"&title="+$('#title').val()+"&description="+editor.getData()+"&categories="+$('#categories').val()+"&references="+$("#references").val();
+		e.preventDefault(); // prevent default form submit			
+		$.ajax
+    ({
+        type: "POST",
+        dataType : 'json',
+        async: false,
+        url: 'process.php',
+        data:serializedData,
+        failure: function() {alert("Error!");}
+    });
+	//clear entry form
+	  $('#entryForm').find("input[type=text], textarea").val("");
+				  editor.setData("");
+
+	});
+	
+		
+            </script>
+</body>
+</html>

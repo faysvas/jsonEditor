@@ -1,0 +1,30 @@
+
+
+body {
+
+
+  color: #024457;
+  background: #f2f2f2;
+}
+
+h1 {
+  font-family: Verdana;
+  font-weight: normal;
+  color: #024457;
+}
+h1 span {
+  color: #167F92;
+}
+
+#table{
+	 table-layout: fixed;
+	 
+}
+th, td {
+  font-size:11px;
+    overflow: hidden;
+
+}
+.titleCol{
+	 font-size:20px;
+}
